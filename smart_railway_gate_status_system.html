@@ -1,0 +1,621 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#16a34a;--green-bg:#dcfce7;--green-text:#14532d;
+    --red:#dc2626;--red-bg:#fee2e2;--red-text:#7f1d1d;
+    --yellow:#d97706;--yellow-bg:#fef3c7;--yellow-text:#78350f;
+    --blue:#2563eb;--blue-bg:#dbeafe;--blue-text:#1e3a8a;
+    --mono:'Space Mono',monospace;
+    --sans:'DM Sans',sans-serif;
+    --rail:#f8f7f4;
+    --border:rgba(0,0,0,0.08);
+  }
+  body{font-family:var(--sans);background:var(--color-background-tertiary,#f8f7f4);min-height:100vh}
+  .app{max-width:680px;margin:0 auto;padding:0 0 2rem}
+  .topbar{background:var(--color-background-primary);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+  .logo{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:0.5px;color:var(--color-text-primary)}
+  .logo span{color:var(--red)}
+  .nav{display:flex;gap:4px}
+  .nav-btn{padding:6px 12px;border:none;background:transparent;border-radius:6px;font-family:var(--sans);font-size:13px;cursor:pointer;color:var(--color-text-secondary);transition:all .15s}
+  .nav-btn.active,.nav-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500}
+  .section{display:none;padding:16px 16px 0}
+  .section.active{display:block}
+  .search-bar{background:var(--color-background-primary);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .search-bar input{border:none;background:transparent;outline:none;flex:1;font-family:var(--sans);font-size:14px;color:var(--color-text-primary)}
+  .search-icon{color:var(--color-text-secondary);font-size:14px}
+  .section-title{font-size:11px;font-weight:600;letter-spacing:1.5px;color:var(--color-text-secondary);text-transform:uppercase;margin-bottom:10px}
+  .gate-card{background:var(--color-background-primary);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:14px}
+  .gate-card:hover{border-color:rgba(0,0,0,0.18);transform:translateY(-1px)}
+  .gate-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .gate-info{flex:1}
+  .gate-name{font-weight:600;font-size:14px;color:var(--color-text-primary);margin-bottom:2px}
+  .gate-loc{font-size:12px;color:var(--color-text-secondary)}
+  .gate-right{text-align:right}
+  .status-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.3px;margin-bottom:4px}
+  .s-open{background:var(--green-bg);color:var(--green-text)}
+  .s-closed{background:var(--red-bg);color:var(--red-text)}
+  .s-closing{background:var(--yellow-bg);color:var(--yellow-text)}
+  .s-opening{background:var(--blue-bg);color:var(--blue-text)}
+  .countdown{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--color-text-primary)}
+  .dist{font-size:11px;color:var(--color-text-secondary)}
+
+  .detail-header{background:var(--color-background-primary);border-radius:14px;padding:20px;margin-bottom:12px;border:1px solid var(--border)}
+  .detail-back{display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;color:var(--color-text-secondary);font-size:13px}
+  .detail-back:hover{color:var(--color-text-primary)}
+  .detail-name{font-size:20px;font-weight:700;color:var(--color-text-primary);margin-bottom:4px}
+  .detail-loc{font-size:13px;color:var(--color-text-secondary);margin-bottom:16px}
+  .detail-status-big{display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;margin-bottom:16px}
+  .status-dot{width:16px;height:16px;border-radius:50%;animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(0.85)}}
+  .status-label{font-size:18px;font-weight:700}
+  .big-countdown{font-family:var(--mono);font-size:36px;font-weight:700;text-align:center;padding:16px 0 8px;letter-spacing:2px}
+  .countdown-label{text-align:center;font-size:12px;color:var(--color-text-secondary);margin-bottom:16px;letter-spacing:1px;text-transform:uppercase}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .info-card{background:var(--color-background-secondary);border-radius:10px;padding:12px 14px}
+  .info-card-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.8px}
+  .info-card-value{font-size:15px;font-weight:600;color:var(--color-text-primary)}
+  .action-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .action-btn{padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--color-background-primary);font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--color-text-primary);transition:all .15s}
+  .action-btn:hover{background:var(--color-background-secondary)}
+  .action-btn.primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+  .action-btn.primary:hover{background:#333}
+  .map-container{background:var(--color-background-primary);border-radius:14px;padding:20px;border:1px solid var(--border);overflow:hidden}
+  .map-svg-wrap{width:100%;border-radius:10px;overflow:hidden;background:#e8f0e8;position:relative}
+  .map-legend{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)}
+  .legend-dot{width:10px;height:10px;border-radius:50%}
+  .notif-list{display:flex;flex-direction:column;gap:8px}
+  .notif-card{background:var(--color-background-primary);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
+  .notif-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .notif-msg{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px}
+  .notif-time{font-size:12px;color:var(--color-text-secondary)}
+  .notif-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:4px;align-self:flex-start;margin-left:auto}
+  .op-card{background:var(--color-background-primary);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:12px}
+  .op-title{font-size:16px;font-weight:700;margin-bottom:16px;color:var(--color-text-primary)}
+  .form-group{margin-bottom:14px}
+  .form-label{font-size:12px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:block}
+  .form-select,.form-input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--sans);font-size:14px;background:var(--color-background-secondary);color:var(--color-text-primary);outline:none}
+  .form-select:focus,.form-input:focus{border-color:rgba(0,0,0,0.3)}
+  .status-toggle{display:flex;gap:8px}
+  .toggle-btn{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:8px;background:transparent;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;color:var(--color-text-secondary)}
+  .toggle-btn.selected-open{background:var(--green-bg);border-color:var(--green);color:var(--green-text)}
+  .toggle-btn.selected-closed{background:var(--red-bg);border-color:var(--red);color:var(--red-text)}
+  .submit-btn{width:100%;padding:13px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;margin-top:6px}
+  .submit-btn:hover{background:#333}
+  .analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .analytic-card{background:var(--color-background-primary);border:1px solid var(--border);border-radius:12px;padding:16px}
+  .analytic-num{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--color-text-primary)}
+  .analytic-label{font-size:12px;color:var(--color-text-secondary);margin-top:4px}
+  .activity-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+  .activity-row:last-child{border:none}
+  .activity-gate{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+  .activity-time{font-size:12px;color:var(--color-text-secondary)}
+  .alert-banner{border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:500}
+  .alert-success{background:var(--green-bg);color:var(--green-text)}
+  .train-anim{position:relative;height:3px;background:var(--border);border-radius:2px;overflow:visible;margin:8px 0 16px}
+  .train-dot{width:18px;height:6px;background:#1a1a1a;border-radius:3px;position:absolute;top:-1.5px;animation:trainMove 3s linear infinite;left:-18px}
+  @keyframes trainMove{0%{left:-18px}100%{left:calc(100% + 18px)}}
+  .tabs-inner{display:flex;gap:2px;background:var(--color-background-secondary);border-radius:8px;padding:3px;margin-bottom:16px}
+  .tab-btn{flex:1;padding:7px 4px;border:none;background:transparent;border-radius:6px;font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;color:var(--color-text-secondary);transition:all .15s}
+  .tab-btn.active{background:var(--color-background-primary);color:var(--color-text-primary);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+  .peak-bar-wrap{margin-top:8px}
+  .peak-hour{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .peak-label{font-size:12px;color:var(--color-text-secondary);width:42px;flex-shrink:0}
+  .peak-bar{height:8px;border-radius:4px;background:#1a1a1a;transition:width .5s}
+  .peak-val{font-size:11px;color:var(--color-text-secondary);margin-left:4px}
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">RAIL<span>GATE</span>.IN</div>
+    <div class="nav">
+      <button class="nav-btn active" onclick="showSection('home')">Gates</button>
+      <button class="nav-btn" onclick="showSection('map')">Map</button>
+      <button class="nav-btn" onclick="showSection('alerts')">Alerts</button>
+      <button class="nav-btn" onclick="showSection('operator')">Operator</button>
+      <button class="nav-btn" onclick="showSection('admin')">Admin</button>
+    </div>
+  </div>
+
+  <div id="home" class="section active">
+    <div style="height:16px"></div>
+    <div class="train-anim"><div class="train-dot"></div></div>
+    <div class="search-bar">
+      <span class="search-icon">&#128269;</span>
+      <input type="text" placeholder="Search gates by name or area..." id="searchInput" oninput="filterGates()">
+    </div>
+    <div class="section-title">Nearby gates — Secunderabad</div>
+    <div id="gate-list"></div>
+  </div>
+
+  <div id="detail" class="section">
+    <div style="height:12px"></div>
+    <div class="detail-back" onclick="showSection('home')">&#8592; Back to gates</div>
+    <div class="detail-header">
+      <div id="d-name" class="detail-name"></div>
+      <div id="d-loc" class="detail-loc"></div>
+      <div id="d-status-big" class="detail-status-big"></div>
+      <div id="d-countdown" class="big-countdown"></div>
+      <div id="d-countdown-label" class="countdown-label"></div>
+      <div class="info-grid">
+        <div class="info-card"><div class="info-card-label">Last changed</div><div id="d-last" class="info-card-value"></div></div>
+        <div class="info-card"><div class="info-card-label">Avg closure</div><div id="d-avg" class="info-card-value"></div></div>
+        <div class="info-card"><div class="info-card-label">Next action</div><div id="d-next" class="info-card-value"></div></div>
+        <div class="info-card"><div class="info-card-label">Daily closures</div><div id="d-daily" class="info-card-value"></div></div>
+      </div>
+      <div class="action-btns">
+        <button class="action-btn" onclick="subscribeGate()">&#128276; Notify me</button>
+        <button class="action-btn primary">&#128205; Navigate</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="map" class="section">
+    <div style="height:16px"></div>
+    <div class="map-container">
+      <div class="section-title">Live gate map — Secunderabad area</div>
+      <div class="map-svg-wrap">
+        <svg id="mapsvg" viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block"></svg>
+      </div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Open</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Closed</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>Closing soon</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Opening soon</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="alerts" class="section">
+    <div style="height:16px"></div>
+    <div class="section-title">Recent notifications</div>
+    <div id="notif-list" class="notif-list"></div>
+  </div>
+
+  <div id="operator" class="section">
+    <div style="height:16px"></div>
+    <div id="op-success" class="alert-banner alert-success" style="display:none">&#10003; Gate status updated successfully!</div>
+    <div class="op-card">
+      <div class="op-title">Update Gate Status</div>
+      <div class="form-group">
+        <label class="form-label">Select Gate</label>
+        <select class="form-select" id="op-gate">
+          <option value="">Choose gate...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <div class="status-toggle">
+          <button class="toggle-btn" id="btn-open" onclick="selectStatus('OPEN')">&#11044; Open</button>
+          <button class="toggle-btn" id="btn-closed" onclick="selectStatus('CLOSED')">&#11044; Closed</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Expected next change (mins)</label>
+        <input type="number" class="form-input" id="op-duration" placeholder="e.g. 7" value="7" min="1" max="60">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes (optional)</label>
+        <input type="text" class="form-input" id="op-notes" placeholder="e.g. Passenger express passing">
+      </div>
+      <button class="submit-btn" onclick="submitUpdate()">Submit Update</button>
+    </div>
+    <div class="op-card">
+      <div class="op-title">Recent Operator Logs</div>
+      <div id="op-logs"></div>
+    </div>
+  </div>
+
+  <div id="admin" class="section">
+    <div style="height:16px"></div>
+    <div class="tabs-inner">
+      <button class="tab-btn active" onclick="adminTab(this,'analytics-panel')">Analytics</button>
+      <button class="tab-btn" onclick="adminTab(this,'gates-panel')">Manage Gates</button>
+      <button class="tab-btn" onclick="adminTab(this,'logs-panel')">System Logs</button>
+    </div>
+    <div id="analytics-panel">
+      <div class="analytics-grid" id="analytics-grid"></div>
+      <div class="op-card">
+        <div class="op-title">Peak closure hours</div>
+        <div class="peak-bar-wrap" id="peak-bars"></div>
+      </div>
+    </div>
+    <div id="gates-panel" style="display:none">
+      <div class="op-card">
+        <div class="op-title">Add New Gate</div>
+        <div class="form-group"><label class="form-label">Gate Name</label><input class="form-input" id="new-gate-name" placeholder="e.g. Lalapet Gate 3"></div>
+        <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="new-gate-loc" placeholder="e.g. Lalapet, Secunderabad"></div>
+        <div class="form-group"><label class="form-label">Avg closure duration (mins)</label><input class="form-input" type="number" id="new-gate-dur" value="6"></div>
+        <button class="submit-btn" onclick="addGate()">Add Gate</button>
+      </div>
+      <div class="op-card">
+        <div class="op-title">All Gates</div>
+        <div id="admin-gate-list"></div>
+      </div>
+    </div>
+    <div id="logs-panel" style="display:none">
+      <div class="op-card">
+        <div class="op-title">System activity log</div>
+        <div id="system-logs"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GATES = [
+  {id:'G101',name:'Kompally Gate 1',loc:'Kompally, Secunderabad',status:'CLOSED',lat:17.5500,lng:78.4800,avgMin:6,closedAt:null,nextChange:null,daily:28,dist:'1.2 km'},
+  {id:'G102',name:'Medchal Gate',loc:'Medchal Road',status:'OPEN',lat:17.6200,lng:78.4600,avgMin:5,closedAt:null,nextChange:null,daily:22,dist:'2.8 km'},
+  {id:'G103',name:'Malkajgiri Gate',loc:'Malkajgiri Junction',status:'OPEN',lat:17.4500,lng:78.5200,avgMin:7,closedAt:null,nextChange:null,daily:35,dist:'3.5 km'},
+  {id:'G104',name:'Secunderabad Main',loc:'Near Clock Tower, SC',status:'CLOSED',lat:17.4400,lng:78.4900,avgMin:8,closedAt:null,nextChange:null,daily:42,dist:'0.6 km'},
+  {id:'G105',name:'Tirumalagiri Gate',loc:'Tirumalagiri, SC',status:'OPEN',lat:17.4300,lng:78.4700,avgMin:5,closedAt:null,nextChange:null,daily:19,dist:'1.9 km'},
+  {id:'G106',name:'Begumpet Gate',loc:'Begumpet Rd, Hyderabad',status:'CLOSED',lat:17.4450,lng:78.4600,avgMin:9,closedAt:null,nextChange:null,daily:30,dist:'4.1 km'},
+];
+
+const NOTIFS = [
+  {msg:'Secunderabad Main — closing in 2 mins',time:'2 min ago',type:'closing',read:false},
+  {msg:'Kompally Gate 1 — now open',time:'8 min ago',type:'open',read:false},
+  {msg:'Malkajgiri Gate — closing in 1 min',time:'14 min ago',type:'closing',read:true},
+  {msg:'Begumpet Gate — closed, reopens in ~9 mins',time:'22 min ago',type:'closed',read:true},
+  {msg:'Medchal Gate — open. Traffic clear.',time:'31 min ago',type:'open',read:true},
+];
+
+const OP_LOGS = [
+  {gate:'Secunderabad Main',status:'CLOSED',time:'10:42 AM',op:'Ravi K.'},
+  {gate:'Kompally Gate 1',status:'OPEN',time:'10:38 AM',op:'Suresh M.'},
+  {gate:'Begumpet Gate',status:'CLOSED',time:'10:30 AM',op:'Ravi K.'},
+  {gate:'Medchal Gate',status:'OPEN',time:'10:15 AM',op:'Anita R.'},
+];
+
+const SYS_LOGS = [
+  {msg:'Admin updated gate G104 schedule',time:'10:55 AM'},
+  {msg:'New user registered: priya@example.com',time:'10:48 AM'},
+  {msg:'Notification sent: 12 users (G101 closing)',time:'10:42 AM'},
+  {msg:'Gate G106 status changed via operator panel',time:'10:30 AM'},
+  {msg:'System health check passed',time:'10:00 AM'},
+];
+
+let selectedStatus = null;
+let detailGate = null;
+let countdownInterval = null;
+let closureTimers = {};
+
+function now(){return Date.now()}
+
+function initTimers(){
+  GATES.forEach(g=>{
+    let offset = Math.floor(Math.random()*g.avgMin*60*1000);
+    if(g.status==='CLOSED'){
+      g.closedAt = now() - offset;
+      g.nextChange = g.closedAt + g.avgMin*60*1000;
+    } else {
+      let nextClose = now() + (g.avgMin + Math.floor(Math.random()*8)+2)*60*1000;
+      g.nextChange = nextClose;
+    }
+  });
+}
+
+function getStatus(g){
+  let t = now();
+  if(g.status==='CLOSED'){
+    let rem = g.nextChange - t;
+    if(rem < 0){
+      g.status = 'OPEN';
+      g.nextChange = t + (g.avgMin + Math.floor(Math.random()*8)+3)*60*1000;
+      return getStatus(g);
+    }
+    if(rem < 120000) return 'OPENING';
+    return 'CLOSED';
+  } else {
+    let rem = g.nextChange - t;
+    if(rem < 0){
+      g.status = 'CLOSED';
+      g.closedAt = t;
+      g.nextChange = t + g.avgMin*60*1000;
+      return getStatus(g);
+    }
+    if(rem < 120000) return 'CLOSING';
+    return 'OPEN';
+  }
+}
+
+function fmtCountdown(ms){
+  if(ms<0) ms=0;
+  let s = Math.floor(ms/1000);
+  let m = Math.floor(s/60); s=s%60;
+  return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+function fmtTime(ts){
+  let d=new Date(ts);
+  return d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+
+function statusColor(s){
+  return {OPEN:'var(--green)',CLOSED:'var(--red)',CLOSING:'var(--yellow)',OPENING:'var(--blue)'}[s]||'gray';
+}
+function statusBg(s){
+  return {OPEN:'var(--green-bg)',CLOSED:'var(--red-bg)',CLOSING:'var(--yellow-bg)',OPENING:'var(--blue-bg)'}[s]||'';
+}
+function statusText(s){
+  return {OPEN:'var(--green-text)',CLOSED:'var(--red-text)',CLOSING:'var(--yellow-text)',OPENING:'var(--blue-text)'}[s]||'';
+}
+function statusLabel(s){
+  return {OPEN:'Open',CLOSED:'Closed',CLOSING:'Closing Soon',OPENING:'Opening Soon'}[s]||s;
+}
+function statusEmoji(s){
+  return {OPEN:'&#9989;',CLOSED:'&#128683;',CLOSING:'&#9888;',OPENING:'&#128994;'}[s]||'';
+}
+
+function countdownLabel(g, s){
+  if(s==='CLOSED'||s==='OPENING') return 'Opens in';
+  if(s==='OPEN'||s==='CLOSING') return 'Next closure in';
+  return '';
+}
+
+function renderGateCards(filter=''){
+  let list = document.getElementById('gate-list');
+  let html = '';
+  GATES.forEach(g=>{
+    if(filter && !g.name.toLowerCase().includes(filter) && !g.loc.toLowerCase().includes(filter)) return;
+    let s = getStatus(g);
+    let rem = g.nextChange - now();
+    let cd = fmtCountdown(Math.abs(rem));
+    let color = statusColor(s);
+    let badge = `<span class="status-badge s-${s.toLowerCase()}">${statusLabel(s)}</span>`;
+    html += `<div class="gate-card" onclick="openDetail('${g.id}')">
+      <div class="gate-icon" style="background:${statusBg(s)}">${statusEmoji(s)}</div>
+      <div class="gate-info">
+        <div class="gate-name">${g.name}</div>
+        <div class="gate-loc">&#128205; ${g.loc}</div>
+      </div>
+      <div class="gate-right">
+        ${badge}
+        <div class="countdown" style="color:${color}">${cd}</div>
+        <div class="dist">${g.dist}</div>
+      </div>
+    </div>`;
+  });
+  list.innerHTML = html || '<div style="text-align:center;padding:40px 0;color:var(--color-text-secondary);font-size:14px">No gates found</div>';
+}
+
+function filterGates(){
+  renderGateCards(document.getElementById('searchInput').value.toLowerCase());
+}
+
+function openDetail(id){
+  detailGate = GATES.find(g=>g.id===id);
+  showSection('detail');
+  renderDetail();
+  if(countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(renderDetail, 1000);
+}
+
+function renderDetail(){
+  if(!detailGate) return;
+  let g = detailGate;
+  let s = getStatus(g);
+  let rem = g.nextChange - now();
+  let cd = fmtCountdown(Math.abs(rem));
+  document.getElementById('d-name').textContent = g.name;
+  document.getElementById('d-loc').textContent = '&#128205; ' + g.loc;
+  document.getElementById('d-status-big').innerHTML = `
+    <div class="status-dot" style="background:${statusColor(s)}"></div>
+    <span class="status-label" style="color:${statusColor(s)}">${statusLabel(s)}</span>`;
+  document.getElementById('d-status-big').style.background = statusBg(s);
+  document.getElementById('d-countdown').style.color = statusColor(s);
+  document.getElementById('d-countdown').textContent = cd;
+  document.getElementById('d-countdown-label').textContent = countdownLabel(g,s);
+  document.getElementById('d-last').textContent = g.closedAt ? fmtTime(g.closedAt) : 'N/A';
+  document.getElementById('d-avg').textContent = g.avgMin + ' mins';
+  document.getElementById('d-next').textContent = g.nextChange ? fmtTime(g.nextChange) : 'N/A';
+  document.getElementById('d-daily').textContent = g.daily + ' times';
+}
+
+function renderMap(){
+  let svg = document.getElementById('mapsvg');
+  let bounds = {minLat:17.41,maxLat:17.64,minLng:78.44,maxLng:78.54};
+  function toXY(lat,lng){
+    let x = (lng - bounds.minLng)/(bounds.maxLng-bounds.minLng)*580+30;
+    let y = (1-(lat-bounds.minLat)/(bounds.maxLat-bounds.minLat))*300+20;
+    return {x,y};
+  }
+  let roads = `
+    <line x1="0" y1="170" x2="640" y2="170" stroke="#d0cec8" stroke-width="3" opacity="0.5"/>
+    <line x1="320" y1="0" x2="320" y2="340" stroke="#d0cec8" stroke-width="2.5" opacity="0.4"/>
+    <line x1="0" y1="100" x2="640" y2="220" stroke="#d0cec8" stroke-width="2" opacity="0.3"/>
+    <line x1="0" y1="50" x2="640" y2="290" stroke="#c8c2b8" stroke-width="1.5" opacity="0.25" stroke-dasharray="6,4"/>
+    <text x="10" y="188" fill="#9a9890" font-size="9" font-family="DM Sans,sans-serif">SC Main Line</text>
+    <text x="330" y="30" fill="#9a9890" font-size="9" font-family="DM Sans,sans-serif">NH 44</text>
+  `;
+  let pins = '';
+  GATES.forEach(g=>{
+    let s = getStatus(g);
+    let {x,y} = toXY(g.lat,g.lng);
+    let col = statusColor(s);
+    let rem = g.nextChange - now();
+    let cd = fmtCountdown(Math.abs(rem));
+    pins += `<g>
+      <circle cx="${x}" cy="${y}" r="18" fill="${statusBg(s)}" stroke="${col}" stroke-width="2" opacity="0.85"/>
+      <circle cx="${x}" cy="${y}" r="8" fill="${col}"/>
+      <text x="${x}" y="${y+30}" text-anchor="middle" font-size="9" fill="#555" font-family="DM Sans,sans-serif" font-weight="600">${g.name.split(' ').slice(0,2).join(' ')}</text>
+      <text x="${x}" y="${y+40}" text-anchor="middle" font-size="8" fill="${col}" font-family="Space Mono,monospace" font-weight="700">${cd}</text>
+    </g>`;
+  });
+  svg.innerHTML = roads + pins;
+}
+
+function renderNotifs(){
+  let icons = {closing:'&#9888;',closed:'&#128683;',open:'&#9989;'};
+  let bgs = {closing:'var(--yellow-bg)',closed:'var(--red-bg)',open:'var(--green-bg)'};
+  let list = document.getElementById('notif-list');
+  list.innerHTML = NOTIFS.map(n=>`
+    <div class="notif-card">
+      <div class="notif-icon" style="background:${bgs[n.type]||'var(--color-background-secondary)'}">${icons[n.type]||'&#128276;'}</div>
+      <div style="flex:1">
+        <div class="notif-msg">${n.msg}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+      ${n.read?'':`<div class="notif-dot"></div>`}
+    </div>`).join('');
+}
+
+function renderOperator(){
+  let sel = document.getElementById('op-gate');
+  sel.innerHTML = '<option value="">Choose gate...</option>' +
+    GATES.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+  let logs = document.getElementById('op-logs');
+  logs.innerHTML = OP_LOGS.map(l=>`
+    <div class="activity-row">
+      <div>
+        <div class="activity-gate">${l.gate}</div>
+        <div class="activity-time">by ${l.op} at ${l.time}</div>
+      </div>
+      <span class="status-badge s-${l.status.toLowerCase()}">${statusLabel(l.status)}</span>
+    </div>`).join('');
+}
+
+function selectStatus(s){
+  selectedStatus = s;
+  document.getElementById('btn-open').className = 'toggle-btn' + (s==='OPEN'?' selected-open':'');
+  document.getElementById('btn-closed').className = 'toggle-btn' + (s==='CLOSED'?' selected-closed':'');
+}
+
+function submitUpdate(){
+  let gid = document.getElementById('op-gate').value;
+  let dur = parseInt(document.getElementById('op-duration').value)||7;
+  let notes = document.getElementById('op-notes').value;
+  if(!gid || !selectedStatus){alert('Please select a gate and status');return;}
+  let g = GATES.find(x=>x.id===gid);
+  if(g){
+    g.status = selectedStatus;
+    g.nextChange = now() + dur*60*1000;
+    if(selectedStatus==='CLOSED') g.closedAt = now();
+    OP_LOGS.unshift({gate:g.name,status:selectedStatus,time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),op:'Operator'});
+    NOTIFS.unshift({msg:`${g.name} — set to ${statusLabel(selectedStatus)} by operator`,time:'just now',type:selectedStatus.toLowerCase(),read:false});
+  }
+  let banner = document.getElementById('op-success');
+  banner.style.display='block';
+  setTimeout(()=>banner.style.display='none',3000);
+  document.getElementById('op-notes').value='';
+  renderOperator();
+}
+
+function addGate(){
+  let name = document.getElementById('new-gate-name').value.trim();
+  let loc = document.getElementById('new-gate-loc').value.trim();
+  let dur = parseInt(document.getElementById('new-gate-dur').value)||6;
+  if(!name||!loc){alert('Please fill in gate name and location');return;}
+  let newG = {id:'G'+Math.floor(Math.random()*900+100),name,loc,status:'OPEN',lat:17.45+Math.random()*0.1,lng:78.46+Math.random()*0.08,avgMin:dur,closedAt:null,nextChange:now()+(dur+5)*60*1000,daily:0,dist:'—'};
+  GATES.push(newG);
+  document.getElementById('new-gate-name').value='';
+  document.getElementById('new-gate-loc').value='';
+  renderAdminGates();
+  renderOperator();
+  SYS_LOGS.unshift({msg:`New gate added: ${name}`,time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})});
+}
+
+function renderAdmin(){
+  let grid = document.getElementById('analytics-grid');
+  let total = GATES.length;
+  let open = GATES.filter(g=>getStatus(g)==='OPEN'||getStatus(g)==='CLOSING').length;
+  let closed = total - open;
+  let avgClosure = Math.round(GATES.reduce((a,g)=>a+g.avgMin,0)/total*10)/10;
+  let totalDaily = GATES.reduce((a,g)=>a+g.daily,0);
+  grid.innerHTML = [
+    {n:total,l:'Total gates'},
+    {n:open,l:'Currently open'},
+    {n:closed,l:'Currently closed'},
+    {n:avgClosure+' min',l:'Avg closure time'},
+    {n:totalDaily,l:'Daily closures (all)'},
+    {n:'99.8%',l:'System uptime'},
+  ].map(c=>`<div class="analytic-card">
+    <div class="analytic-num">${c.n}</div>
+    <div class="analytic-label">${c.l}</div>
+  </div>`).join('');
+  let peaks = [
+    {h:'08:00',v:92},
+    {h:'09:00',v:78},
+    {h:'10:00',v:55},
+    {h:'11:00',v:40},
+    {h:'12:00',v:35},
+    {h:'17:00',v:88},
+    {h:'18:00',v:95},
+    {h:'19:00',v:70},
+  ];
+  document.getElementById('peak-bars').innerHTML = peaks.map(p=>`
+    <div class="peak-hour">
+      <div class="peak-label">${p.h}</div>
+      <div style="flex:1;background:var(--color-background-secondary);border-radius:4px;height:8px">
+        <div class="peak-bar" style="width:${p.v}%;background:${p.v>80?'var(--red)':p.v>60?'var(--yellow)':'var(--green)'}"></div>
+      </div>
+      <div class="peak-val">${p.v}%</div>
+    </div>`).join('');
+  renderAdminGates();
+  renderSysLogs();
+}
+
+function renderAdminGates(){
+  let div = document.getElementById('admin-gate-list');
+  div.innerHTML = GATES.map(g=>{
+    let s = getStatus(g);
+    return `<div class="activity-row">
+      <div>
+        <div class="activity-gate">${g.name} <span style="font-size:11px;color:var(--color-text-secondary);font-weight:400">${g.id}</span></div>
+        <div class="activity-time">${g.loc} · avg ${g.avgMin} min closure</div>
+      </div>
+      <span class="status-badge s-${s.toLowerCase()}">${statusLabel(s)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderSysLogs(){
+  document.getElementById('system-logs').innerHTML = SYS_LOGS.map(l=>`
+    <div class="activity-row">
+      <div class="activity-gate">${l.msg}</div>
+      <div class="activity-time" style="white-space:nowrap;margin-left:8px">${l.time}</div>
+    </div>`).join('');
+}
+
+function subscribeGate(){
+  if(!detailGate) return;
+  NOTIFS.unshift({msg:`You'll be notified when ${detailGate.name} status changes`,time:'just now',type:'open',read:false});
+  alert('Notification set for ' + detailGate.name);
+}
+
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  let labels = {home:'Gates',map:'Map',alerts:'Alerts',operator:'Operator',admin:'Admin',detail:null};
+  if(labels[id]){
+    document.querySelectorAll('.nav-btn').forEach(b=>{if(b.textContent===labels[id])b.classList.add('active');});
+  }
+  if(id==='map') renderMap();
+  if(id==='alerts') renderNotifs();
+  if(id==='operator') renderOperator();
+  if(id==='admin') renderAdmin();
+  if(id==='home') renderGateCards(document.getElementById('searchInput').value.toLowerCase());
+  if(id!=='detail' && countdownInterval){clearInterval(countdownInterval);countdownInterval=null;}
+}
+
+function adminTab(btn, panelId){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['analytics-panel','gates-panel','logs-panel'].forEach(p=>{
+    document.getElementById(p).style.display = p===panelId ? 'block':'none';
+  });
+  if(panelId==='logs-panel') renderSysLogs();
+  if(panelId==='gates-panel') renderAdminGates();
+}
+
+initTimers();
+renderGateCards();
+setInterval(()=>{
+  if(document.getElementById('home').classList.contains('active')){
+    renderGateCards(document.getElementById('searchInput').value.toLowerCase());
+  }
+}, 1000);
+</script>
